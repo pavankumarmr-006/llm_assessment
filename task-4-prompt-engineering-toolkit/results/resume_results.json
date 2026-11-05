@@ -1,0 +1,97 @@
+[
+    {
+        "resume_id": 1,
+        "expected": {
+            "name": "Rahul Sharma",
+            "skills": [
+                "Python",
+                "Django",
+                "SQL",
+                "REST APIs"
+            ],
+            "years_experience": 3
+        },
+        "plain_answer": "HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+        "plain_valid": false,
+        "plain_extracted": null,
+        "json_answer": "HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+        "json_valid": false,
+        "json_extracted": null
+    },
+    {
+        "resume_id": 2,
+        "expected": {
+            "name": "Priya Nair",
+            "skills": [
+                "Excel",
+                "SQL",
+                "Power BI",
+                "Python"
+            ],
+            "years_experience": 5
+        },
+        "plain_answer": "HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+        "plain_valid": false,
+        "plain_extracted": null,
+        "json_answer": "HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+        "json_valid": false,
+        "json_extracted": null
+    },
+    {
+        "resume_id": 3,
+        "expected": {
+            "name": "Arjun Kumar",
+            "skills": [
+                "HTML",
+                "CSS",
+                "JavaScript",
+                "React"
+            ],
+            "years_experience": 2
+        },
+        "plain_answer": "HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+        "plain_valid": false,
+        "plain_extracted": null,
+        "json_answer": "HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+        "json_valid": false,
+        "json_extracted": null
+    },
+    {
+        "resume_id": 4,
+        "expected": {
+            "name": "Meera Iyer",
+            "skills": [
+                "AWS",
+                "Docker",
+                "Kubernetes",
+                "Linux"
+            ],
+            "years_experience": 6
+        },
+        "plain_answer": "HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+        "plain_valid": false,
+        "plain_extracted": null,
+        "json_answer": "HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+        "json_valid": false,
+        "json_extracted": null
+    },
+    {
+        "resume_id": 5,
+        "expected": {
+            "name": "Vikram Rao",
+            "skills": [
+                "Manual Testing",
+                "Selenium",
+                "Java",
+                "API Testing"
+            ],
+            "years_experience": 4
+        },
+        "plain_answer": "HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+        "plain_valid": false,
+        "plain_extracted": null,
+        "json_answer": "HTTPConnectionPool(host='localhost', port=11434): Max retries exceeded with url: /api/chat (Caused by NewConnectionError(\"HTTPConnection(host='localhost', port=11434): Failed to establish a new connection: [WinError 10061] No connection could be made because the target machine actively refused it\"))",
+        "json_valid": false,
+        "json_extracted": null
+    }
+]

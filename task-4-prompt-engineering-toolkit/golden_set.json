@@ -1,0 +1,93 @@
+
+[
+  {
+    "id": 1,
+    "ticket": "I was charged twice for my monthly subscription. Please refund the extra payment.",
+    "category": "Billing",
+    "priority": "High"
+  },
+  {
+    "id": 2,
+    "ticket": "My invoice contains an incorrect tax amount. Please check it.",
+    "category": "Billing",
+    "priority": "Medium"
+  },
+  {
+    "id": 3,
+    "ticket": "I want to know when my next subscription payment is due.",
+    "category": "Billing",
+    "priority": "Low"
+  },
+  {
+    "id": 4,
+    "ticket": "My credit card payment failed and I cannot complete the purchase.",
+    "category": "Billing",
+    "priority": "High"
+  },
+  {
+    "id": 5,
+    "ticket": "Please send me a copy of last month's payment receipt.",
+    "category": "Billing",
+    "priority": "Low"
+  },
+  {
+    "id": 6,
+    "ticket": "The application crashes every time I try to upload a document.",
+    "category": "Technical",
+    "priority": "High"
+  },
+  {
+    "id": 7,
+    "ticket": "The website takes a very long time to load.",
+    "category": "Technical",
+    "priority": "Medium"
+  },
+  {
+    "id": 8,
+    "ticket": "The export button produces an empty CSV file.",
+    "category": "Technical",
+    "priority": "Medium"
+  },
+  {
+    "id": 9,
+    "ticket": "The entire service is unavailable and all employees are unable to log in.",
+    "category": "Technical",
+    "priority": "High"
+  },
+  {
+    "id": 10,
+    "ticket": "How can I change the language settings in the application?",
+    "category": "Technical",
+    "priority": "Low"
+  },
+  {
+    "id": 11,
+    "ticket": "I cannot reset my password and I am locked out of my account.",
+    "category": "Account",
+    "priority": "High"
+  },
+  {
+    "id": 12,
+    "ticket": "Please update the email address associated with my account.",
+    "category": "Account",
+    "priority": "Medium"
+  },
+  {
+    "id": 13,
+    "ticket": "I would like to change my profile picture.",
+    "category": "Account",
+    "priority": "Low"
+  },
+  {
+    "id": 14,
+    "ticket": "Someone accessed my account without permission. Please secure it immediately.",
+    "category": "Account",
+    "priority": "High"
+  },
+  {
+    "id": 15,
+    "ticket": "I want to update my registered phone number.",
+    "category": "Account",
+    "priority": "Medium"
+  }
+]

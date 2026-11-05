@@ -1,0 +1,14 @@
+[
+    {
+        "bad": "Classify this.",
+        "improved": "Classify this customer ticket into Billing, Technical or Account. Assign Low, Medium or High priority. Return JSON with category and priority."
+    },
+    {
+        "bad": "Extract resume details.",
+        "improved": "Extract the candidate's full name, technical skills as a string array and total years of experience as an integer. Return valid JSON only."
+    },
+    {
+        "bad": "Write something about AI.",
+        "improved": "Write a 150-word beginner-friendly explanation of artificial intelligence. Include its definition, two applications and one limitation. Use simple English."
+    }
+]

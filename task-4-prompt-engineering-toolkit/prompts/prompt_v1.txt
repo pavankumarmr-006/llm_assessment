@@ -1,0 +1,13 @@
+Classify the following customer support ticket.
+
+Choose one category:
+Billing, Technical, Account.
+
+Choose one priority:
+Low, Medium, High.
+
+Return the result in JSON format with:
+category and priority.
+
+Ticket:
+{ticket}

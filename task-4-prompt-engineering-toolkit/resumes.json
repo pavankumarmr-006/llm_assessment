@@ -1,0 +1,48 @@
+
+[
+  {
+    "id": 1,
+    "resume": "Rahul Sharma is a Python developer with 3 years of experience. He has skills in Python, Django, SQL and REST APIs.",
+    "expected": {
+      "name": "Rahul Sharma",
+      "skills": ["Python", "Django", "SQL", "REST APIs"],
+      "years_experience": 3
+    }
+  },
+  {
+    "id": 2,
+    "resume": "Priya Nair is a data analyst with 5 years of experience. Her technical skills include Excel, SQL, Power BI and Python.",
+    "expected": {
+      "name": "Priya Nair",
+      "skills": ["Excel", "SQL", "Power BI", "Python"],
+      "years_experience": 5
+    }
+  },
+  {
+    "id": 3,
+    "resume": "Arjun Kumar is a frontend developer with 2 years of experience working with HTML, CSS, JavaScript and React.",
+    "expected": {
+      "name": "Arjun Kumar",
+      "skills": ["HTML", "CSS", "JavaScript", "React"],
+      "years_experience": 2
+    }
+  },
+  {
+    "id": 4,
+    "resume": "Meera Iyer is a cloud engineer with 6 years of experience. She works with AWS, Docker, Kubernetes and Linux.",
+    "expected": {
+      "name": "Meera Iyer",
+      "skills": ["AWS", "Docker", "Kubernetes", "Linux"],
+      "years_experience": 6
+    }
+  },
+  {
+    "id": 5,
+    "resume": "Vikram Rao is a software tester with 4 years of experience in manual testing, Selenium, Java and API testing.",
+    "expected": {
+      "name": "Vikram Rao",
+      "skills": ["Manual Testing", "Selenium", "Java", "API Testing"],
+      "years_experience": 4
+    }
+  }
+]
