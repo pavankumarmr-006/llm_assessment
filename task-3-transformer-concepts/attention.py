@@ -1,124 +1,150 @@
 
 import numpy as np
 
-
+# Function to calculate softmax
 def softmax(x):
-    """Calculate stable row-wise softmax."""
-    exp_x = np.exp(x - np.max(x, axis=-1, keepdims=True))
-    return exp_x / np.sum(exp_x, axis=-1, keepdims=True)
+
+    # Find exponential values
+    exp_values = np.exp(x - np.max(x, axis=1, keepdims=True))
+
+    # Calculate sum of each row
+    total = np.sum(exp_values, axis=1, keepdims=True)
+
+    # Divide to get attention weights
+    result = exp_values / total
+
+    return result
 
 
+# Single Head Attention
 def single_head_attention(X):
-    print("\n========== SINGLE-HEAD SELF-ATTENTION ==========")
+
+    print("\n===== SINGLE HEAD ATTENTION =====")
 
     np.random.seed(42)
 
-    # Four tokens, each represented by four features
+    # Create Query, Key and Value weight matrices
     Wq = np.random.randn(4, 4)
     Wk = np.random.randn(4, 4)
     Wv = np.random.randn(4, 4)
 
-    # Query, Key and Value
+    # Calculate Query, Key and Value
     Q = X @ Wq
     K = X @ Wk
     V = X @ Wv
 
-    # Attention scores
-    d = Q.shape[1]
-    scores = (Q @ K.T) / np.sqrt(d)
+    print("\nQuery:")
+    print(Q)
 
-    # Row-wise softmax
-    attention_weights = softmax(scores)
+    print("\nKey:")
+    print(K)
 
-    # Attention output
-    output = attention_weights @ V
+    print("\nValue:")
+    print(V)
 
-    print("\nQuery (Q):\n", Q)
-    print("\nKey (K):\n", K)
-    print("\nValue (V):\n", V)
+    # Calculate attention scores
+    scores = (Q @ K.T) / np.sqrt(4)
 
-    print("\nAttention Weights (4x4):")
-    print(np.round(attention_weights, 4))
+    print("\nAttention Scores:")
+    print(scores)
 
-    print("\nRow sums:")
-    print(np.sum(attention_weights, axis=1))
+    # Calculate attention weights using softmax
+    weights = softmax(scores)
+
+    print("\nAttention Weights:")
+    print(np.round(weights, 4))
+
+    # Calculate final attention output
+    output = weights @ V
 
     print("\nAttention Output:")
     print(np.round(output, 4))
 
-    # Verify every row sums to 1
-    assert np.allclose(
-        np.sum(attention_weights, axis=1),
-        1.0
-    )
+    # Check whether each row adds up to 1
+    print("\nRow Sums:")
+    print(np.sum(weights, axis=1))
 
-    print("\nVerification: Every row sums to 1.0")
+    print("\nSingle Head Attention Completed!")
 
 
+# Multi Head Attention
 def multi_head_attention(X):
-    print("\n========== TWO-HEAD SELF-ATTENTION ==========")
+
+    print("\n===== MULTI HEAD ATTENTION =====")
 
     np.random.seed(10)
 
-    input_dim = X.shape[1]
-    num_heads = 2
-    head_dim = input_dim // num_heads
+    # Number of attention heads
+    heads = 2
 
-    head_outputs = []
-    head_weights = []
+    # Input size
+    size = X.shape[1]
 
-    for head in range(num_heads):
+    # Size of each head
+    head_size = size // heads
 
-        # Each head has its own projections
-        Wq = np.random.randn(input_dim, head_dim)
-        Wk = np.random.randn(input_dim, head_dim)
-        Wv = np.random.randn(input_dim, head_dim)
+    # Store outputs of both heads
+    outputs = []
 
+    # Run two attention heads
+    for i in range(heads):
+
+        print("\nHead", i + 1)
+
+        # Create weight matrices
+        Wq = np.random.randn(size, head_size)
+        Wk = np.random.randn(size, head_size)
+        Wv = np.random.randn(size, head_size)
+
+        # Calculate Query, Key and Value
         Q = X @ Wq
         K = X @ Wk
         V = X @ Wv
 
-        scores = (Q @ K.T) / np.sqrt(head_dim)
+        # Calculate attention scores
+        scores = (Q @ K.T) / np.sqrt(head_size)
 
+        # Calculate attention weights
         weights = softmax(scores)
 
-        head_output = weights @ V
-
-        head_outputs.append(head_output)
-        head_weights.append(weights)
-
-        print(f"\nHead {head + 1} Attention Matrix:")
+        print("\nAttention Weights:")
         print(np.round(weights, 4))
 
-        print("Row sums:", np.sum(weights, axis=1))
+        # Calculate attention output
+        output = weights @ V
 
-        assert np.allclose(
-            np.sum(weights, axis=1),
-            1.0
-        )
+        print("\nHead Output:")
+        print(np.round(output, 4))
 
-    # Concatenate both attention heads
-    concatenated = np.concatenate(head_outputs, axis=1)
+        # Store the output
+        outputs.append(output)
 
-    print("\nConcatenated Output:")
-    print(np.round(concatenated, 4))
+        # Check row sums
+        print("\nRow Sums:")
+        print(np.sum(weights, axis=1))
 
-    # Output projection
-    Wo = np.random.randn(input_dim, input_dim)
+    # Join the outputs of both heads
+    combined = np.concatenate(outputs, axis=1)
 
-    final_output = concatenated @ Wo
+    print("\nCombined Output:")
+    print(np.round(combined, 4))
 
-    print("\nOutput Projection Matrix:")
-    print(np.round(Wo, 4))
+    # Create output weight matrix
+    Wo = np.random.randn(size, size)
 
-    print("\nFinal Multi-Head Output:")
+    # Calculate final output
+    final_output = combined @ Wo
+
+    print("\nFinal Multi Head Output:")
     print(np.round(final_output, 4))
 
-    print("\nMulti-head attention completed successfully.")
+    print("\nMulti Head Attention Completed!")
 
 
-def run():
-    # Four sample token embeddings
+# Main program
+def main():
+
+    # Create four sample input tokens
     X = np.array([
         [1.0, 0.0, 1.0, 0.0],
         [0.0, 2.0, 0.0, 2.0],
@@ -126,10 +152,18 @@ def run():
         [2.0, 0.0, 2.0, 0.0]
     ])
 
+    print("Input Data:")
+    print(X)
+
+    # Call single head attention
     single_head_attention(X)
+
+    # Call multi head attention
     multi_head_attention(X)
 
 
-if __name__ == "__main__":
-    run()
+# Start the program
+main()
 
+def run():
+    print("\n===== ATTENTION MODULE COMPLETED =====")

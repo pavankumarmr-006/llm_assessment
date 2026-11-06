@@ -1,19 +1,16 @@
 
 import json
-import csv
 import re
 import requests
 from pathlib import Path
 from pydantic import BaseModel, ValidationError
 
 
-# ==========================================
-# CONFIGURATION
-# ==========================================
-
+# Model details
 MODEL = "llama3.1:8b"
 API_URL = "http://localhost:11434/api/chat"
 
+# Create folders
 BASE_DIR = Path(__file__).parent
 RESULT_DIR = BASE_DIR / "results"
 PROMPT_DIR = BASE_DIR / "prompts"
@@ -21,13 +18,10 @@ PROMPT_DIR = BASE_DIR / "prompts"
 RESULT_DIR.mkdir(exist_ok=True)
 
 
-# ==========================================
-# OLLAMA API FUNCTION
-# ==========================================
-
+# Function to ask questions to Ollama
 def ask_model(prompt, temperature=0, top_p=0.95, json_mode=False):
 
-    payload = {
+    data = {
         "model": MODEL,
         "messages": [
             {"role": "user", "content": prompt}
@@ -40,162 +34,148 @@ def ask_model(prompt, temperature=0, top_p=0.95, json_mode=False):
         }
     }
 
+    # Enable JSON output if needed
     if json_mode:
-        payload["format"] = "json"
+        data["format"] = "json"
 
-    response = requests.post(
-        API_URL,
-        json=payload,
-        timeout=600
-    )
+    response = requests.post(API_URL, json=data, timeout=600)
 
     response.raise_for_status()
 
-    return response.json()["message"]["content"]
+    result = response.json()
+
+    return result["message"]["content"]
 
 
-# ==========================================
-# JSON HELPER
-# ==========================================
-
+# Function to convert text into JSON
 def parse_json(text):
 
-    cleaned = text.strip()
+    text = text.strip()
 
-    cleaned = re.sub(
-        r"^```(?:json)?\s*|\s*```$",
-        "",
-        cleaned,
-        flags=re.IGNORECASE
-    )
+    # Remove unnecessary code marks
+    text = re.sub(r"```json|```", "", text, flags=re.IGNORECASE)
 
     try:
-        return json.loads(cleaned)
+        result = json.loads(text)
+        return result
+
     except json.JSONDecodeError:
-        match = re.search(r"\{.*\}", cleaned, re.DOTALL)
-
-        if match:
-            try:
-                return json.loads(match.group())
-            except json.JSONDecodeError:
-                return None
-
-    return None
+        return None
 
 
+# Function to save results in a JSON file
 def save_json(filename, data):
 
-    path = RESULT_DIR / filename
+    file_path = RESULT_DIR / filename
 
-    with open(path, "w", encoding="utf-8") as file:
-        json.dump(data, file, indent=4, ensure_ascii=False)
+    with open(file_path, "w", encoding="utf-8") as file:
+        json.dump(data, file, indent=4)
+
+    print("\nFile saved:", filename)
 
 
-# ==========================================
+# =====================================
 # EXPERIMENT 1: CLASSIFICATION
-# ==========================================
+# =====================================
 
 def classification_test():
 
-    print("\n========== CLASSIFICATION EXPERIMENT ==========")
+    print("\n===== CLASSIFICATION EXPERIMENT =====")
 
-    with open(
-        BASE_DIR / "golden_set.json",
-        encoding="utf-8"
-    ) as file:
+    # Read ticket data
+    with open(BASE_DIR / "golden_set.json", encoding="utf-8") as file:
         tickets = json.load(file)
 
     versions = ["v1", "v2", "v3"]
-    all_results = {}
 
+    results = {}
+
+    # Test three different prompts
     for version in versions:
 
-        print(f"\nTesting Prompt {version.upper()}")
+        print("\nTesting Prompt:", version)
 
-        prompt_template = (
-            PROMPT_DIR / f"prompt_{version}.txt"
-        ).read_text(encoding="utf-8")
+        # Read prompt file
+        file_path = PROMPT_DIR / ("prompt_" + version + ".txt")
+
+        prompt_text = file_path.read_text(encoding="utf-8")
 
         correct = 0
-        version_results = []
+        details = []
 
-        for item in tickets:
+        # Check every ticket
+        for ticket in tickets:
 
-            prompt = prompt_template.replace(
-                "{ticket}", item["ticket"]
+            prompt = prompt_text.replace(
+                "{ticket}", ticket["ticket"]
             )
 
             try:
-                answer = ask_model(
-                    prompt,
-                    temperature=0,
-                    json_mode=True
-                )
+
+                answer = ask_model(prompt, json_mode=True)
 
                 data = parse_json(answer)
 
-                predicted_category = (
-                    data.get("category", "")
-                    if isinstance(data, dict) else ""
-                )
+                category = ""
+                priority = ""
 
-                predicted_priority = (
-                    data.get("priority", "")
-                    if isinstance(data, dict) else ""
-                )
+                if isinstance(data, dict):
+                    category = data.get("category", "")
+                    priority = data.get("priority", "")
 
-                is_correct = (
-                    predicted_category == item["category"]
-                    and predicted_priority == item["priority"]
-                )
+                # Compare predicted and correct answers
+                if category == ticket["category"] and priority == ticket["priority"]:
+                    correct = correct + 1
+                    status = True
+                else:
+                    status = False
 
-                if is_correct:
-                    correct += 1
-
-                version_results.append({
-                    "id": item["id"],
-                    "ticket": item["ticket"],
-                    "expected_category": item["category"],
-                    "expected_priority": item["priority"],
-                    "predicted_category": predicted_category,
-                    "predicted_priority": predicted_priority,
-                    "correct": is_correct,
-                    "raw_answer": answer
+                details.append({
+                    "id": ticket["id"],
+                    "ticket": ticket["ticket"],
+                    "expected_category": ticket["category"],
+                    "expected_priority": ticket["priority"],
+                    "predicted_category": category,
+                    "predicted_priority": priority,
+                    "correct": status
                 })
 
             except Exception as error:
 
-                version_results.append({
-                    "id": item["id"],
+                print("Error:", error)
+
+                details.append({
+                    "id": ticket["id"],
                     "correct": False,
                     "error": str(error)
                 })
 
+        # Calculate accuracy
         accuracy = (correct / len(tickets)) * 100
 
-        print(
-            f"{version.upper()}: "
-            f"{correct}/15 ({accuracy:.1f}%)"
-        )
+        print("Correct Answers:", correct)
+        print("Total Tickets:", len(tickets))
+        print("Accuracy:", round(accuracy, 2), "%")
 
-        all_results[version] = {
+        results[version] = {
             "correct": correct,
             "total": len(tickets),
             "accuracy": accuracy,
-            "details": version_results
+            "details": details
         }
 
-    save_json("classification_results.json", all_results)
+    save_json("classification_results.json", results)
 
 
-# ==========================================
-# EXPERIMENT 2: WORD PROBLEMS
-# ==========================================
+# =====================================
+# EXPERIMENT 2: REASONING
+# =====================================
 
 def reasoning_test():
 
-    print("\n========== REASONING EXPERIMENT ==========")
+    print("\n===== REASONING EXPERIMENT =====")
 
+    # Sample mathematical questions
     problems = [
         {
             "question": "A shop sells 4 pens for Rs. 10 each. What is the total cost?",
@@ -221,111 +201,106 @@ def reasoning_test():
 
     results = []
 
-    for index, problem in enumerate(problems, 1):
+    # Run each problem
+    for i in range(len(problems)):
 
-        print(f"\nProblem {index}")
+        question = problems[i]["question"]
+        correct_answer = problems[i]["answer"]
 
+        print("\nProblem", i + 1)
+        print(question)
+
+        # Test two different prompting methods
         for mode in ["Plain", "Step by step"]:
 
             if mode == "Plain":
-                prompt = (
-                    problem["question"]
-                    + " Give the final numerical answer."
-                )
+
+                prompt = question + " Give the final numerical answer."
+
             else:
-                prompt = (
-                    problem["question"]
-                    + " Think step by step and show a brief "
-                    "calculation, then give the final answer."
-                )
+
+                prompt = question + " Show the calculation and give the final answer."
 
             try:
-                answer = ask_model(
-                    prompt,
-                    temperature=0
-                )
 
-                print(mode, ":", answer)
+                answer = ask_model(prompt)
+
+                print(mode, "Answer:", answer)
 
                 results.append({
-                    "problem": index,
+                    "problem": i + 1,
                     "mode": mode,
-                    "question": problem["question"],
-                    "expected_answer": problem["answer"],
+                    "question": question,
+                    "expected_answer": correct_answer,
                     "model_answer": answer
                 })
 
             except Exception as error:
-                results.append({
-                    "problem": index,
-                    "mode": mode,
-                    "error": str(error)
-                })
+
+                print("Error:", error)
 
     save_json("reasoning_results.json", results)
 
 
-# ==========================================
-# EXPERIMENT 3: TEMPERATURE AND TOP-P
-# ==========================================
+# =====================================
+# EXPERIMENT 3: CREATIVITY
+# =====================================
 
 def creativity_test():
 
-    print("\n========== CREATIVITY EXPERIMENT ==========")
+    print("\n===== CREATIVITY EXPERIMENT =====")
 
-    creative_prompt = (
-        "Write a short creative story in 4 sentences "
-        "about a robot helping a village during a storm."
-    )
+    prompt = "Write a short creative story in 4 sentences about a robot helping a village during a storm."
 
+    # Different temperature values
     temperatures = [0, 0.7, 1.2]
+
+    # Different top-p values
     top_p_values = [0.3, 0.95]
 
     results = []
 
-    for temperature in temperatures:
+    # Test different temperature values
+    for temp in temperatures:
 
         for top_p in top_p_values:
 
-            print(
-                f"\nTemperature: {temperature}, "
-                f"Top-p: {top_p}"
-            )
+            print("\nTemperature:", temp)
+            print("Top-p:", top_p)
 
-            for repetition in range(1, 6):
+            # Generate five answers
+            for i in range(5):
 
                 try:
+
                     answer = ask_model(
-                        creative_prompt,
-                        temperature=temperature,
+                        prompt,
+                        temperature=temp,
                         top_p=top_p
                     )
 
-                    print(f"Run {repetition}: {answer}")
+                    print("\nRun", i + 1)
+                    print(answer)
 
                     results.append({
-                        "temperature": temperature,
+                        "temperature": temp,
                         "top_p": top_p,
-                        "run": repetition,
+                        "run": i + 1,
                         "answer": answer
                     })
 
                 except Exception as error:
 
-                    results.append({
-                        "temperature": temperature,
-                        "top_p": top_p,
-                        "run": repetition,
-                        "error": str(error)
-                    })
+                    print("Error:", error)
 
     save_json("creativity_results.json", results)
 
 
-# ==========================================
+# =====================================
 # EXPERIMENT 4: PYDANTIC MODEL
-# ==========================================
+# =====================================
 
+# Create a model to check resume details
 class ResumeData(BaseModel):
 
     name: str
@@ -335,18 +310,16 @@ class ResumeData(BaseModel):
     years_experience: int
 
 
-# ==========================================
+# =====================================
 # EXPERIMENT 5: RESUME EXTRACTION
-# ==========================================
+# =====================================
 
 def resume_test():
 
-    print("\n========== RESUME EXTRACTION ==========")
+    print("\n===== RESUME EXTRACTION =====")
 
-    with open(
-        BASE_DIR / "resumes.json",
-        encoding="utf-8"
-    ) as file:
+    # Read resume data
+    with open(BASE_DIR / "resumes.json", encoding="utf-8") as file:
         resumes = json.load(file)
 
     results = []
@@ -354,170 +327,162 @@ def resume_test():
     invalid_plain = 0
     invalid_json = 0
 
-    for item in resumes:
+    # Check every resume
+    for resume in resumes:
 
-        print(f"\nResume {item['id']}")
+        print("\nResume:", resume["id"])
 
-        prompt = f"""
+        prompt = """
 Extract the following information from this resume:
 
 - name
-- skills (array of strings)
-- years_experience (integer)
+- skills as a list
+- years_experience as an integer
 
 Return valid JSON only.
 
 Resume:
-{item['resume']}
-"""
+""" + resume["resume"]
 
-        # Without JSON mode
+        # Test without JSON mode
         try:
 
-            plain_answer = ask_model(
-                prompt,
-                temperature=0,
-                json_mode=False
-            )
+            answer1 = ask_model(prompt, json_mode=False)
 
-            plain_data = parse_json(plain_answer)
+            data1 = parse_json(answer1)
 
             try:
-                validated_plain = ResumeData.model_validate(
-                    plain_data
-                )
+
+                valid1 = ResumeData(**data1)
 
                 plain_valid = True
-
-                plain_output = validated_plain.model_dump()
+                plain_output = valid1.model_dump()
 
             except (ValidationError, TypeError, ValueError):
+
                 plain_valid = False
                 plain_output = None
-                invalid_plain += 1
+                invalid_plain = invalid_plain + 1
 
         except Exception as error:
 
-            plain_answer = str(error)
+            answer1 = str(error)
             plain_valid = False
             plain_output = None
-            invalid_plain += 1
+            invalid_plain = invalid_plain + 1
 
-        # With JSON mode
+        # Test with JSON mode
         try:
 
-            json_answer = ask_model(
-                prompt,
-                temperature=0,
-                json_mode=True
-            )
+            answer2 = ask_model(prompt, json_mode=True)
 
-            json_data = parse_json(json_answer)
+            data2 = parse_json(answer2)
 
             try:
-                validated_json = ResumeData.model_validate(
-                    json_data
-                )
+
+                valid2 = ResumeData(**data2)
 
                 json_valid = True
-
-                json_output = validated_json.model_dump()
+                json_output = valid2.model_dump()
 
             except (ValidationError, TypeError, ValueError):
+
                 json_valid = False
                 json_output = None
-                invalid_json += 1
+                invalid_json = invalid_json + 1
 
         except Exception as error:
 
-            json_answer = str(error)
+            answer2 = str(error)
             json_valid = False
             json_output = None
-            invalid_json += 1
+            invalid_json = invalid_json + 1
 
-        print("Plain JSON valid:", plain_valid)
-        print("JSON mode valid:", json_valid)
+        print("Plain JSON Valid:", plain_valid)
+        print("JSON Mode Valid:", json_valid)
 
         results.append({
-            "resume_id": item["id"],
-            "expected": item["expected"],
-            "plain_answer": plain_answer,
+            "resume_id": resume["id"],
+            "expected": resume["expected"],
+            "plain_answer": answer1,
             "plain_valid": plain_valid,
             "plain_extracted": plain_output,
-            "json_answer": json_answer,
+            "json_answer": answer2,
             "json_valid": json_valid,
             "json_extracted": json_output
         })
 
-    print("\nInvalid plain outputs:", invalid_plain, "/ 5")
-    print("Invalid JSON mode outputs:", invalid_json, "/ 5")
+    # Display invalid results
+    print("\nInvalid Plain Outputs:", invalid_plain)
+    print("Invalid JSON Outputs:", invalid_json)
 
     save_json("resume_results.json", results)
 
-    save_json("resume_validation_summary.json", {
+    summary = {
         "plain_invalid": invalid_plain,
         "json_mode_invalid": invalid_json,
         "total": len(resumes)
-    })
+    }
+
+    save_json("resume_validation_summary.json", summary)
 
 
-# ==========================================
-# EXPERIMENT 6: BAD PROMPTS AND IMPROVEMENTS
-# ==========================================
+# =====================================
+# EXPERIMENT 6: PROMPT IMPROVEMENT
+# =====================================
 
 def prompt_improvement_test():
 
-    print("\n========== PROMPT IMPROVEMENT ==========")
+    print("\n===== PROMPT IMPROVEMENT =====")
 
+    # Bad prompts and their improved versions
     examples = [
         {
             "bad": "Classify this.",
-            "improved": (
-                "Classify this customer ticket into Billing, Technical "
-                "or Account. Assign Low, Medium or High priority. "
-                "Return JSON with category and priority."
-            )
+
+            "improved": "Classify this customer ticket into Billing, Technical or Account. Assign Low, Medium or High priority. Return JSON with category and priority."
         },
         {
             "bad": "Extract resume details.",
-            "improved": (
-                "Extract the candidate's full name, technical skills "
-                "as a string array and total years of experience "
-                "as an integer. Return valid JSON only."
-            )
+
+            "improved": "Extract the candidate's name, technical skills as a list and years of experience as an integer. Return JSON only."
         },
         {
             "bad": "Write something about AI.",
-            "improved": (
-                "Write a 150-word beginner-friendly explanation of "
-                "artificial intelligence. Include its definition, "
-                "two applications and one limitation. Use simple English."
-            )
+
+            "improved": "Write a 150-word beginner-friendly explanation of artificial intelligence. Include its definition, two applications and one limitation."
         }
     ]
 
+    # Display the prompts
+    for i in range(len(examples)):
+
+        print("\nExample", i + 1)
+
+        print("Bad Prompt:")
+        print(examples[i]["bad"])
+
+        print("\nImproved Prompt:")
+        print(examples[i]["improved"])
+
+    # Save prompt examples
     save_json("prompt_improvements.json", examples)
 
-    for index, example in enumerate(examples, 1):
 
-        print(f"\nExample {index}")
-        print("Bad prompt:", example["bad"])
-        print("Improved prompt:", example["improved"])
-
-
-# ==========================================
+# =====================================
 # MAIN PROGRAM
-# ==========================================
+# =====================================
 
 def main():
 
-    print("======================================")
+    print("\n===================================")
     print("TASK 4 - PROMPT ENGINEERING TOOLKIT")
-    print("======================================")
+    print("===================================")
 
     print("\nMake sure Ollama is running.")
     print("Model:", MODEL)
 
+    # Run all experiments
     classification_test()
 
     reasoning_test()
@@ -528,12 +493,13 @@ def main():
 
     prompt_improvement_test()
 
-    print("\n======================================")
+    print("\n===================================")
     print("ALL EXPERIMENTS COMPLETED")
-    print("======================================")
+    print("===================================")
 
-    print("\nCheck the results folder for experiment outputs.")
+    print("\nCheck the results folder.")
 
 
+# Start the program
 if __name__ == "__main__":
     main()

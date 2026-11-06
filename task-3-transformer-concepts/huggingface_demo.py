@@ -1,43 +1,51 @@
 
 from transformers import pipeline
 
+# Main program
+def main():
 
-def run():
+    print("\n===== HUGGING FACE DEMONSTRATION =====")
 
-    print("\n========== HUGGING FACE DEMONSTRATION ==========")
+    # BERT Fill Mask
+    print("\n===== BERT FILL MASK =====")
 
-    # BERT: Fill-Mask task
-    print("\n========== BERT FILL-MASK ==========")
-
-    fill_mask = pipeline(
+    # Load BERT model
+    bert = pipeline(
         "fill-mask",
         model="google-bert/bert-base-uncased"
     )
 
-    bert_result = fill_mask(
-        "Artificial intelligence is a [MASK] technology."
-    )
+    # Give a sentence with a missing word
+    sentence = "Artificial intelligence is a [MASK] technology."
+
+    # Predict the missing word
+    result = bert(sentence)
 
     print("\nBERT Predictions:")
 
-    for result in bert_result[:3]:
-        print(
-            result["token_str"],
-            "Score:",
-            round(result["score"], 4)
-        )
+    # Display top 3 predictions
+    for i in range(3):
 
-    # GPT-2: Text Generation
-    print("\n========== GPT-2 TEXT GENERATION ==========")
+        word = result[i]["token_str"]
+        score = result[i]["score"]
 
-    generator = pipeline(
+        print(word, "Score:", round(score, 4))
+
+
+    # GPT-2 Text Generation
+    print("\n===== GPT-2 TEXT GENERATION =====")
+
+    # Load GPT-2 model
+    gpt = pipeline(
         "text-generation",
         model="openai-community/gpt2"
     )
 
+    # Give starting text
     prompt = "Artificial intelligence will change the future because"
 
-    gpt_result = generator(
+    # Generate new text
+    result = gpt(
         prompt,
         max_new_tokens=40,
         do_sample=False,
@@ -46,8 +54,11 @@ def run():
 
     print("\nGPT-2 Generated Text:")
 
-    print(gpt_result[0]["generated_text"])
+    print(result[0]["generated_text"])
 
 
-if __name__ == "__main__":
-    run()
+# Start the program
+main()
+
+def run():
+    main()
